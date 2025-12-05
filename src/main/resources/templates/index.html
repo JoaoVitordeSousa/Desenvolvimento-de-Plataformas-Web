@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Biblioteca Universitária - Login/Cadastro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ffffff;
+        }
+
+        .container-auth {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .form-text a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .form-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-auth">
+        <!-- LOGIN FORM -->
+        <div id="loginFormContainer">
+            <h3 class="text-center mb-4">Login Biblioteca</h3>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="matricula" class="form-label">Matrícula</label>
+                    <input type="text" class="form-control" id="matricula" required>
+                </div>
+                <div class="mb-3">
+                    <label for="senha" class="form-label">Senha</label>
+                    <input type="password" class="form-control" id="senha" required>
+                </div>
+                <div id="loginError" class="text-danger mb-3" style="display:none;"></div>
+                <button type="submit" class="btn btn-primary w-100">Entrar</button>
+            </form>
+            <div class="form-text mt-3 text-center">
+                <a href="#" id="forgotPassword">Esqueceu a senha?</a> |
+                <a href="#" id="goToRegister">Primeiro acesso</a>
+            </div>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="registerFormContainer" style="display:none;">
+            <h3 class="text-center mb-4">Cadastro Biblioteca</h3>
+            <form id="registerForm">
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome completo</label>
+                    <input type="text" class="form-control" id="nome" required>
+                </div>
+                <div class="mb-3">
+                    <label for="matriculaCadastro" class="form-label">Matrícula</label>
+                    <input type="text" class="form-control" id="matriculaCadastro" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="senhaCadastro" class="form-label">Senha</label>
+                    <input type="password" class="form-control" id="senhaCadastro" required>
+                </div>
+                <div class="mb-3">
+                    <label for="confirmSenha" class="form-label">Confirmar senha</label>
+                    <input type="password" class="form-control" id="confirmSenha" required>
+                </div>
+                <div id="registerError" class="text-danger mb-3" style="display:none;"></div>
+                <button type="submit" class="btn btn-primary w-100">Cadastre-se</button>
+            </form>
+            <div class="form-text mt-3 text-center">
+                <a href="#" id="goToLogin">Já possui uma conta? Faça login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const loginFormContainer = document.getElementById('loginFormContainer');
+        const registerFormContainer = document.getElementById('registerFormContainer');
+        const goToRegister = document.getElementById('goToRegister');
+        const goToLogin = document.getElementById('goToLogin');
+
+        goToRegister.addEventListener('click', () => {
+            loginFormContainer.style.display = 'none';
+            registerFormContainer.style.display = 'block';
+        });
+
+        goToLogin.addEventListener('click', () => {
+            registerFormContainer.style.display = 'none';
+            loginFormContainer.style.display = 'block';
+        });
+
+        // Cadastro
+        const registerForm = document.getElementById('registerForm');
+        const registerError = document.getElementById('registerError');
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value.trim();
+            const matricula = document.getElementById('matriculaCadastro').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senhaCadastro').value.trim();
+            const confirmSenha = document.getElementById('confirmSenha').value.trim();
+
+            if (!nome || !matricula || !email || !senha || !confirmSenha) {
+                registerError.style.display = 'block';
+                registerError.textContent = "Todos os campos devem ser preenchidos.";
+                return;
+            }
+            if (senha !== confirmSenha) {
+                registerError.style.display = 'block';
+                registerError.textContent = "As senhas não coincidem.";
+                return;
+            }
+
+            // Definir role com base no domínio do email
+            let tipoUsuario = "ALUNO";
+            if (email.endsWith("@admin.unifor.br")) {
+                tipoUsuario = "ADMINISTRADOR";
+            } else if (email.endsWith("@unifor.br")) {
+                tipoUsuario = "BIBLIOTECARIO";
+            } else if (email.endsWith("@edu.unifor.br")) {
+                tipoUsuario = "ALUNO";
+            }
+
+            try {
+                await axios.post('http://localhost:8080/api/v1/auth/register', {
+                    nome: nome,
+                    matricula: matricula,
+                    email: email,
+                    senha: senha,
+                    tipoUsuario: tipoUsuario
+                });
+                alert("Cadastro realizado com sucesso!");
+                // Voltar para login
+                registerFormContainer.style.display = 'none';
+                loginFormContainer.style.display = 'block';
+            } catch (err) {
+                registerError.style.display = 'block';
+                registerError.textContent = "Erro ao cadastrar usuário.";
+            }
+        });
+    </script>
+</body>
+
+</html>
