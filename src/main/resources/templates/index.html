@@ -146,8 +146,8 @@
             }
 
             try {
-                await axios.post('http://localhost:8080/api/v1/auth/register', {
-                    nome: nome,
+                await axios.post('http://localhost:8080/api/v1/usuarios/cadastro', {
+                    nomeCompleto: nome,
                     matricula: matricula,
                     email: email,
                     senha: senha,
@@ -160,6 +160,39 @@
             } catch (err) {
                 registerError.style.display = 'block';
                 registerError.textContent = "Erro ao cadastrar usuário.";
+            }
+        });
+
+        // Login
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const matricula = document.getElementById('matricula').value.trim();
+            const senha = document.getElementById('senha').value.trim();
+
+            if (!matricula || !senha) {
+                loginError.style.display = 'block';
+                loginError.textContent = "Preencha todos os campos.";
+                return;
+            }
+
+            try {
+                const response = await axios.post('http://localhost:8080/api/v1/usuarios/login', {
+                    matricula: matricula,
+                    senha: senha
+                });
+
+                alert(response.data.mensagem); // "Login realizado com sucesso"
+                console.log("Usuário logado:", response.data.usuario);
+
+                // Redirecionar para dashboard (exemplo)
+                // window.location.href = "/dashboard.html";
+
+            } catch (err) {
+                loginError.style.display = 'block';
+                loginError.textContent = "Matrícula ou senha inválida.";
             }
         });
     </script>

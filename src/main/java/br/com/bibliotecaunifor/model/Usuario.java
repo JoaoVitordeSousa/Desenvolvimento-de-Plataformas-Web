@@ -1,6 +1,5 @@
 package br.com.bibliotecaunifor.model;
 
-import br.com.bibliotecaunifor.enums.TipoUsuario;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
@@ -9,8 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 
 @Entity(name = "usuarios")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -25,9 +22,6 @@ public abstract class Usuario {
     private int matricula;
     private String email;
     private String senha;
-
-    @Enumerated(EnumType.STRING)
-    private TipoUsuario tipoUsuario;
 
     // Construtor padrão
     public Usuario() {
@@ -48,7 +42,4 @@ public abstract class Usuario {
 
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
-
-    public TipoUsuario getTipoUsuario() { return tipoUsuario; }
-    public void setTipoUsuario(TipoUsuario tipoUsuario) { this.tipoUsuario = tipoUsuario; }
 }
