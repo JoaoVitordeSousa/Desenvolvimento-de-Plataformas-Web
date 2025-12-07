@@ -96,4 +96,16 @@ public class LivroController {
         List<LivroResponseDTO> resultados = livroService.pesquisarLivros(query, field);
         return ResponseEntity.ok(resultados);
     }
+
+    @Operation(summary = "Buscar livro por código interno", description = "Retorna os dados de um livro específico pelo código interno")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Livro encontrado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Livro não encontrado")
+    })
+    @GetMapping("/{codigoInterno}")
+    public ResponseEntity<LivroResponseDTO> buscarLivroPorCodigoInterno(@PathVariable String codigoInterno) {
+        Optional<LivroResponseDTO> response = livroService.buscarPorCodigoInterno(codigoInterno);
+        return response.map(ResponseEntity::ok)
+                       .orElse(ResponseEntity.notFound().build());
+    }
 }

@@ -139,6 +139,12 @@ public class LivroService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public Optional<LivroResponseDTO> buscarPorCodigoInterno(String codigoInterno) {
+        return livroRepository.findByCodigoInterno(codigoInterno)
+                .map(this::toResponseDTO);
+    }
+
     private LivroResponseDTO toResponseDTO(Livro livro) {
         return new LivroResponseDTO(
                 livro.getId(),
