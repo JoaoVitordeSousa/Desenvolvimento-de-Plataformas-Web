@@ -263,7 +263,7 @@ const profileUserTipo = document.getElementById('profileUserTipo');
 const profileLogsList = document.getElementById('profileLogsList');
 
 // Estado temporário
-let currentBookId = null;
+let currentBookCodigoInterno = null;
 
 // 🔎 Pesquisa de livros
 searchBookForm.addEventListener('submit', async (e) => {
@@ -282,15 +282,15 @@ searchBookForm.addEventListener('submit', async (e) => {
             li.className = "list-group-item d-flex justify-content-between align-items-start";
 
             li.innerHTML = `
-        <div class="me-2 flex-grow-1">
-          <div class="fw-bold">${livro.titulo}</div>
-          <small>Código: ${livro.codigoInterno} • Autor: ${livro.autor} • Gênero: ${livro.genero} • Status: ${livro.status}</small>
-        </div>
-        <div class="d-flex flex-column gap-1">
-          <button class="btn btn-outline-primary btn-sm" data-action="consultar" data-id="${livro.id}">Consultar</button>
-          <button class="btn btn-outline-warning btn-sm" data-action="editar" data-id="${livro.id}">Editar</button>
-        </div>
-      `;
+    <div class="me-2 flex-grow-1">
+      <div class="fw-bold">${livro.titulo}</div>
+      <small>Código: ${livro.codigoInterno} • Autor: ${livro.autor} • Gênero: ${livro.genero} • Status: ${livro.status}</small>
+    </div>
+    <div class="d-flex flex-column gap-1">
+      <button class="btn btn-outline-primary btn-sm" data-action="consultar" data-id="${livro.codigoInterno}">Consultar</button>
+      <button class="btn btn-outline-warning btn-sm" data-action="editar" data-id="${livro.codigoInterno}">Editar</button>
+    </div>
+  `;
             booksList.appendChild(li);
         });
     } catch (err) {
@@ -304,12 +304,12 @@ booksList.addEventListener('click', async (e) => {
     if (!btn) return;
 
     const action = btn.dataset.action;
-    const id = btn.dataset.id;
+    const codigoInterno = btn.dataset.id; // agora usamos codigoInterno
 
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/livros/${id}`);
+        const response = await axios.get(`http://localhost:8080/api/v1/livros/${codigoInterno}`);
         const livro = response.data;
-        currentBookId = livro.id;
+        currentBookId = livro.codigoInterno; // guardamos o codigoInterno
 
         if (action === "consultar") {
             viewCodigoInterno.textContent = livro.codigoInterno;
@@ -324,7 +324,8 @@ booksList.addEventListener('click', async (e) => {
         }
 
         if (action === "editar") {
-            document.getElementById('editId').value = livro.id;
+            // aqui você guarda o código interno do livro selecionado
+            currentBookCodigoInterno = livro.codigoInterno;
             document.getElementById('editCodigoInterno').value = livro.codigoInterno;
             document.getElementById('editTitulo').value = livro.titulo;
             document.getElementById('editAutor').value = livro.autor;
@@ -343,10 +344,11 @@ booksList.addEventListener('click', async (e) => {
 // ✏️ Editar livro
 editBookForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const id = document.getElementById('editId').value;
+
+    const codigoInterno = document.getElementById('editCodigoInterno').value;
 
     const livroAtualizado = {
-        codigoInterno: document.getElementById('editCodigoInterno').value,
+        codigoInterno,
         titulo: document.getElementById('editTitulo').value,
         autor: document.getElementById('editAutor').value,
         genero: document.getElementById('editGenero').value,
@@ -357,27 +359,29 @@ editBookForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        await axios.put(`http://localhost:8080/api/v1/livros/${id}`, livroAtualizado);
+        await axios.put(`http://localhost:8080/api/v1/livros/${codigoInterno}`, livroAtualizado);
         alert("Livro atualizado com sucesso!");
-        editBookModal.hide();
-        searchBookForm.dispatchEvent(new Event('submit')); // atualiza lista
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editBookModal'));
+        modal.hide();
+        searchBookForm.dispatchEvent(new Event('submit'));
     } catch (err) {
         alert("Erro ao atualizar livro.");
     }
 });
 
 // 🗑️ Remover livro
-openDeleteConfirmBtn.addEventListener('click', () => {
-    deleteConfirmModal.show();
-});
-
 confirmDeleteBookBtn.addEventListener('click', async () => {
+    if (!currentBookCodigoInterno) {
+        alert("Nenhum livro selecionado para remoção.");
+        return;
+    }
+
     try {
-        await axios.delete(`http://localhost:8080/api/v1/livros/${currentBookId}`);
+        await axios.delete(`http://localhost:8080/api/v1/livros/${currentBookCodigoInterno}`);
         alert("Livro removido com sucesso!");
         deleteConfirmModal.hide();
         editBookModal.hide();
-        searchBookForm.dispatchEvent(new Event('submit'));
+        searchBookForm.dispatchEvent(new Event('submit')); // atualiza lista
     } catch (err) {
         alert("Erro ao remover livro.");
     }
@@ -677,7 +681,7 @@ const bibAluguelAluno = document.getElementById('bibAluguelAluno');
 const bibAluguelMatricula = document.getElementById('bibAluguelMatricula');
 const bibAluguelObservacoes = document.getElementById('bibAluguelObservacoes');
 
-// 🔎 Pesquisa de livros
+// 🔎 Pesquisa de livros (Bibliotecário)
 searchBookBibForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const query = searchBookBibInput.value.trim();
@@ -699,7 +703,7 @@ searchBookBibForm.addEventListener('submit', async (e) => {
           <small>Autor: ${livro.autor} • ISBN: ${livro.isbn10 || livro.isbn13} • Código: ${livro.codigoInterno} • Status: ${livro.status}</small>
         </div>
         <div>
-          <button class="btn btn-outline-info btn-sm" data-action="consultar" data-id="${livro.id}">Consultar</button>
+          <button class="btn btn-outline-info btn-sm" data-action="consultar" data-id="${livro.codigoInterno}">Consultar</button>
         </div>
       `;
             booksBibList.appendChild(li);
@@ -709,15 +713,15 @@ searchBookBibForm.addEventListener('submit', async (e) => {
     }
 });
 
-// 📖 Consultar livro
+// 📖 Consultar livro (Bibliotecário)
 booksBibList.addEventListener('click', async (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
 
     if (btn.dataset.action === "consultar") {
-        const id = btn.dataset.id;
+        const codigoInterno = btn.dataset.id; // agora usamos codigoInterno
         try {
-            const response = await axios.get(`http://localhost:8080/api/v1/livros/${id}`);
+            const response = await axios.get(`http://localhost:8080/api/v1/livros/${codigoInterno}`);
             const livro = response.data;
 
             bibCodigoInterno.textContent = livro.codigoInterno;
