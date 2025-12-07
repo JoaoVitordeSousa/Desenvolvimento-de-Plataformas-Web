@@ -104,10 +104,356 @@
                 <button type="submit" class="btn btn-primary w-100">Confirmar</button>
             </form>
         </div>
+
+        <!-- ADMIN CONTAINER (SPA) -->
+        <div id="adminContainer" style="display:none;">
+            <h3 class="text-center mb-4">Painel do Administrador</h3>
+
+            <!-- Ações principais -->
+            <div class="d-flex gap-2 mb-3">
+                <button id="openCreateBookModalBtn" class="btn btn-success">Cadastrar livro</button>
+                <button id="openUsersModalBtn" class="btn btn-secondary">Consultar cadastro (Admins e
+                    Bibliotecários)</button>
+                <button id="logoutBtn" class="btn btn-outline-danger ms-auto">Logout</button>
+            </div>
+
+            <!-- Pesquisa de livros -->
+            <form id="searchBookForm" class="mb-3">
+                <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                        <input type="text" id="searchQuery" class="form-control"
+                            placeholder="Pesquisar por qualquer atributo (título, autor, ISBN, gênero, código interno)...">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select id="searchField" class="form-select">
+                            <option value="">Todos os campos</option>
+                            <option value="codigoInterno">Código interno</option>
+                            <option value="titulo">Título</option>
+                            <option value="autor">Autor</option>
+                            <option value="genero">Gênero</option>
+                            <option value="isbn10">ISBN-10</option>
+                            <option value="isbn13">ISBN-13</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">Pesquisar</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Lista de resultados (livros cadastrados pelo administrador) -->
+            <div id="booksListContainer" class="mt-3">
+                <h5 class="mb-3">Resultados da pesquisa</h5>
+                <ul id="booksList" class="list-group">
+                    <!-- Cada item de livro é renderizado aqui -->
+                    <!-- Template de item:
+      <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="me-2 flex-grow-1">
+          <div class="fw-bold">Título do Livro</div>
+          <small>Código interno: ABC123 • Autor: Fulano • Gênero: Ficção • Status: DISPONIVEL</small>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <button class="btn btn-outline-primary btn-sm" data-action="consultar" data-id="...">Consultar</button>
+          <button class="btn btn-outline-warning btn-sm" data-action="editar" data-id="...">Editar</button>
+        </div>
+      </li>
+      -->
+                </ul>
+            </div>
+
+            <!-- Modal: Consulta de livro -->
+            <div class="modal fade" id="consultBookModal" tabindex="-1" aria-labelledby="consultBookModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="consultBookModalLabel">Consultar livro</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Código interno</dt>
+                                <dd class="col-sm-8" id="viewCodigoInterno"></dd>
+                                <dt class="col-sm-4">Título</dt>
+                                <dd class="col-sm-8" id="viewTitulo"></dd>
+                                <dt class="col-sm-4">Autor</dt>
+                                <dd class="col-sm-8" id="viewAutor"></dd>
+                                <dt class="col-sm-4">Gênero</dt>
+                                <dd class="col-sm-8" id="viewGenero"></dd>
+                                <dt class="col-sm-4">ISBN-10</dt>
+                                <dd class="col-sm-8" id="viewIsbn10"></dd>
+                                <dt class="col-sm-4">ISBN-13</dt>
+                                <dd class="col-sm-8" id="viewIsbn13"></dd>
+                                <dt class="col-sm-4">Status</dt>
+                                <dd class="col-sm-8" id="viewStatus"></dd>
+                                <dt class="col-sm-4">Sinopse</dt>
+                                <dd class="col-sm-8" id="viewSinopse"></dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal: Edição de livro -->
+            <div class="modal fade" id="editBookModal" tabindex="-1" aria-labelledby="editBookModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <form id="editBookForm" class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editBookModalLabel">Editar livro</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="editId">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="editCodigoInterno" class="form-label">Código interno</label>
+                                    <input type="text" class="form-control" id="editCodigoInterno" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editTitulo" class="form-label">Título</label>
+                                    <input type="text" class="form-control" id="editTitulo" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editAutor" class="form-label">Autor</label>
+                                    <input type="text" class="form-control" id="editAutor" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editGenero" class="form-label">Gênero</label>
+                                    <input type="text" class="form-control" id="editGenero" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editIsbn10" class="form-label">ISBN-10</label>
+                                    <input type="text" class="form-control" id="editIsbn10" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editIsbn13" class="form-label">ISBN-13</label>
+                                    <input type="text" class="form-control" id="editIsbn13" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editStatus" class="form-label">Status</label>
+                                    <select id="editStatus" class="form-select" required>
+                                        <option value="DISPONIVEL">Disponível</option>
+                                        <option value="INDISPONIVEL">Indisponível</option>
+                                        <option value="RESERVADO">Reservado</option>
+                                        <option value="ALUGADO">Alugado</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label for="editSinopse" class="form-label">Sinopse</label>
+                                    <textarea id="editSinopse" class="form-control" rows="4" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-between">
+                            <button type="button" id="openDeleteConfirmBtn" class="btn btn-outline-danger">Remover
+                                livro</button>
+                            <div>
+                                <button type="button" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-warning">Salvar alterações</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal: Confirmação de remoção -->
+            <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteConfirmModalLabel">Confirmar remoção</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            Tem certeza de que deseja remover este livro? Essa ação removerá o cadastro para todas as
+                            entidades e o livro deixará de aparecer nas pesquisas.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" id="confirmDeleteBookBtn" class="btn btn-danger">Remover</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal: Cadastro de livro -->
+            <div class="modal fade" id="createBookModal" tabindex="-1" aria-labelledby="createBookModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <form id="createBookForm" class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createBookModalLabel">Cadastrar livro</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="createCodigoInterno" class="form-label">Código interno</label>
+                                    <input type="text" class="form-control" id="createCodigoInterno" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createTitulo" class="form-label">Título</label>
+                                    <input type="text" class="form-control" id="createTitulo" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createAutor" class="form-label">Autor</label>
+                                    <input type="text" class="form-control" id="createAutor" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createGenero" class="form-label">Gênero</label>
+                                    <input type="text" class="form-control" id="createGenero" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createIsbn10" class="form-label">ISBN-10</label>
+                                    <input type="text" class="form-control" id="createIsbn10" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createIsbn13" class="form-label">ISBN-13</label>
+                                    <input type="text" class="form-control" id="createIsbn13" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createStatus" class="form-label">Status</label>
+                                    <select id="createStatus" class="form-select" required>
+                                        <option value="DISPONIVEL">Disponível</option>
+                                        <option value="INDISPONIVEL">Indisponível</option>
+                                        <option value="RESERVADO">Reservado</option>
+                                        <option value="ALUGADO">Alugado</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label for="createSinopse" class="form-label">Sinopse</label>
+                                    <textarea id="createSinopse" class="form-control" rows="4" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal: Consulta de cadastro (lista de usuários) -->
+            <div class="modal fade" id="usersModal" tabindex="-1" aria-labelledby="usersModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="usersModalLabel">Cadastros de usuários (Administradores e
+                                Bibliotecários)</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <ul id="usersList" class="list-group">
+                                <!-- Lista de usuários renderizada aqui -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal: Perfil do usuário (logs) -->
+            <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="profileModalLabel">Perfil</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <strong>Usuário:</strong> <span id="profileUserName"></span> •
+                                <strong>Matrícula:</strong> <span id="profileUserMatricula"></span> •
+                                <strong>Tipo:</strong> <span id="profileUserTipo"></span>
+                            </div>
+                            <h6>Logs de ações</h6>
+                            <ul id="profileLogsList" class="list-group">
+                                <!-- Logs vinculados ao usuário renderizados aqui -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALUNO CONTAINER -->
+        <div id="alunoContainer" style="display:none;">
+            <h3 class="text-center mb-4">Painel do Aluno</h3>
+
+            <!-- Pesquisa de livros -->
+            <form id="searchBookAlunoForm" class="mb-4">
+                <div class="input-group">
+                    <input type="text" id="searchBookAlunoInput" class="form-control"
+                        placeholder="Pesquisar livro por título...">
+                    <button type="submit" class="btn btn-primary">Pesquisar</button>
+                </div>
+            </form>
+
+            <!-- Resultado da pesquisa -->
+            <div id="bookAlunoResult" style="display:none;">
+                <h5 class="mb-3">Informações do Livro</h5>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item"><strong>Título:</strong> <span id="alunoTitulo"></span></li>
+                    <li class="list-group-item"><strong>Autor:</strong> <span id="alunoAutor"></span></li>
+                    <li class="list-group-item"><strong>Status:</strong> <span id="alunoStatus"></span></li>
+                </ul>
+
+                <!-- Botão de reservar -->
+                <button id="reserveBookBtn" class="btn btn-success w-100">Reservar Livro</button>
+            </div>
+
+            <!-- Histórico -->
+            <div class="mt-4">
+                <button id="viewReservasBtn" class="btn btn-secondary w-100 mb-2">Minhas Reservas</button>
+                <button id="viewAlugueisBtn" class="btn btn-secondary w-100">Meus Aluguéis</button>
+            </div>
+        </div>
+
+        <!-- BIBLIOTECÁRIO CONTAINER -->
+        <div id="bibliotecarioContainer" style="display:none;">
+            <h3 class="text-center mb-4">Painel do Bibliotecário</h3>
+
+            <!-- Consulta de livros -->
+            <form id="searchBookBibForm" class="mb-4">
+                <div class="input-group">
+                    <input type="text" id="searchBookBibInput" class="form-control"
+                        placeholder="Pesquisar livro por título...">
+                    <button type="submit" class="btn btn-primary">Pesquisar</button>
+                </div>
+            </form>
+
+            <!-- Resultado da pesquisa -->
+            <div id="bookBibResult" style="display:none;">
+                <h5 class="mb-3">Informações do Livro</h5>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item"><strong>Título:</strong> <span id="bibTitulo"></span></li>
+                    <li class="list-group-item"><strong>Autor:</strong> <span id="bibAutor"></span></li>
+                    <li class="list-group-item"><strong>Status:</strong> <span id="bibStatus"></span></li>
+                </ul>
+            </div>
+
+            <!-- Verificação de aluguéis -->
+            <div class="mt-4">
+                <form id="checkAlunoAluguelForm">
+                    <div class="input-group">
+                        <input type="text" id="alunoMatriculaCheck" class="form-control"
+                            placeholder="Matrícula do aluno...">
+                        <button type="submit" class="btn btn-warning">Verificar Aluguéis</button>
+                    </div>
+                </form>
+                <ul id="alunoAlugueisList" class="list-group mt-3"></ul>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <!-- JS externo -->
     <script src="../static/script.js"></script>
 </body>
+
 </html>

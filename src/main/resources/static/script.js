@@ -1,10 +1,21 @@
-
-
+// Containers principais
 const loginFormContainer = document.getElementById('loginFormContainer');
 const registerFormContainer = document.getElementById('registerFormContainer');
+const forgotPasswordContainer = document.getElementById('forgotPasswordContainer');
+const resetPasswordContainer = document.getElementById('resetPasswordContainer');
+
+// Novos containers SPA
+const adminContainer = document.getElementById('adminContainer');
+const alunoContainer = document.getElementById('alunoContainer');
+const bibliotecarioContainer = document.getElementById('bibliotecarioContainer');
+
+// Links de navegação
 const goToRegister = document.getElementById('goToRegister');
 const goToLogin = document.getElementById('goToLogin');
+const forgotPasswordLink = document.getElementById('forgotPassword');
+const backToLoginFromForgot = document.getElementById('backToLoginFromForgot');
 
+// Alternar entre login e cadastro
 goToRegister.addEventListener('click', () => {
     loginFormContainer.style.display = 'none';
     registerFormContainer.style.display = 'block';
@@ -12,6 +23,18 @@ goToRegister.addEventListener('click', () => {
 
 goToLogin.addEventListener('click', () => {
     registerFormContainer.style.display = 'none';
+    loginFormContainer.style.display = 'block';
+});
+
+// Alternar para tela de recuperação
+forgotPasswordLink.addEventListener('click', () => {
+    loginFormContainer.style.display = 'none';
+    forgotPasswordContainer.style.display = 'block';
+});
+
+// Voltar ao login
+backToLoginFromForgot.addEventListener('click', () => {
+    forgotPasswordContainer.style.display = 'none';
     loginFormContainer.style.display = 'block';
 });
 
@@ -87,11 +110,26 @@ loginForm.addEventListener('submit', async (e) => {
             senha: senha
         });
 
-        alert(response.data.mensagem); // "Login realizado com sucesso"
-        console.log("Usuário logado:", response.data.usuario);
+        const usuario = response.data.usuario;
+        const tipo = usuario?.tipoUsuario;
 
-        // Redirecionar para dashboard (exemplo)
-        // window.location.href = "/dashboard.html";
+        // Esconde todos os containers
+        loginFormContainer.style.display = 'none';
+        registerFormContainer.style.display = 'none';
+        forgotPasswordContainer.style.display = 'none';
+        resetPasswordContainer.style.display = 'none';
+        if (adminContainer) adminContainer.style.display = 'none';
+        if (alunoContainer) alunoContainer.style.display = 'none';
+        if (bibliotecarioContainer) bibliotecarioContainer.style.display = 'none';
+
+        // Mostra o container correto
+        if (tipo === "ADMINISTRADOR") {
+            adminContainer.style.display = 'block';
+        } else if (tipo === "ALUNO") {
+            alunoContainer.style.display = 'block';
+        } else if (tipo === "BIBLIOTECARIO") {
+            bibliotecarioContainer.style.display = 'block';
+        }
 
     } catch (err) {
         loginError.style.display = 'block';
@@ -99,23 +137,7 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
-const forgotPasswordContainer = document.getElementById('forgotPasswordContainer');
-const resetPasswordContainer = document.getElementById('resetPasswordContainer');
-const forgotPasswordLink = document.getElementById('forgotPassword');
-const backToLoginFromForgot = document.getElementById('backToLoginFromForgot');
-
-// Alternar para tela de recuperação
-forgotPasswordLink.addEventListener('click', () => {
-    loginFormContainer.style.display = 'none';
-    forgotPasswordContainer.style.display = 'block';
-});
-
-// Voltar ao login
-backToLoginFromForgot.addEventListener('click', () => {
-    forgotPasswordContainer.style.display = 'none';
-    loginFormContainer.style.display = 'block';
-});
-
+// Recuperação de senha - Etapa 1
 const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 const forgotError = document.getElementById('forgotError');
 
@@ -147,6 +169,7 @@ forgotPasswordForm.addEventListener('submit', async (e) => {
     }
 });
 
+// Recuperação de senha - Etapa 2
 const resetPasswordForm = document.getElementById('resetPasswordForm');
 const resetError = document.getElementById('resetError');
 
@@ -179,3 +202,5 @@ resetPasswordForm.addEventListener('submit', async (e) => {
         resetError.textContent = "Erro ao redefinir senha.";
     }
 });
+
+
