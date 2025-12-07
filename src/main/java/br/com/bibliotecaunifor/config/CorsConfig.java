@@ -13,19 +13,37 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                String basePath = "/api/v1/usuarios";
-                String[] endpoints = {
+                // Endpoints de usuários
+                String usuariosBasePath = "/api/v1/usuarios";
+                String[] usuariosEndpoints = {
                         "/cadastro",
                         "/login"
                 };
 
-                for (String endpoint : endpoints) {
-                    registry.addMapping(basePath + endpoint)
+                for (String endpoint : usuariosEndpoints) {
+                    registry.addMapping(usuariosBasePath + endpoint)
                             .allowedOrigins("http://127.0.0.1:5500")
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                            .allowedHeaders("Content-Type", "Authorization") // apenas os headers usados
-                            .exposedHeaders("Authorization") // permite que o front leia o header Authorization da resposta
-                            .allowCredentials(true); // necessário se usar cookies ou tokens
+                            .allowedHeaders("Content-Type", "Authorization")
+                            .exposedHeaders("Authorization")
+                            .allowCredentials(true);
+                }
+
+                // Endpoints de livros
+                String livrosBasePath = "/api/v1/livros";
+                String[] livrosEndpoints = {
+                        "",
+                        "/",
+                        "/{codigoInterno}"
+                };
+
+                for (String endpoint : livrosEndpoints) {
+                    registry.addMapping(livrosBasePath + endpoint)
+                            .allowedOrigins("http://127.0.0.1:5500")
+                            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                            .allowedHeaders("Content-Type", "Authorization")
+                            .exposedHeaders("Authorization")
+                            .allowCredentials(true);
                 }
             }
         };
