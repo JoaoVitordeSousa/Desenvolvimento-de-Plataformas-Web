@@ -511,46 +511,183 @@
             </div>
         </div>
 
-        <!-- BIBLIOTECÁRIO CONTAINER -->
+        <!-- BIBLIOTECÁRIO CONTAINER (SPA) -->
         <div id="bibliotecarioContainer" style="display:none;">
             <h3 class="text-center mb-4">Painel do Bibliotecário</h3>
 
-            <!-- Consulta de livros -->
-            <form id="searchBookBibForm" class="mb-4">
-                <div class="input-group">
-                    <input type="text" id="searchBookBibInput" class="form-control"
-                        placeholder="Pesquisar livro por título...">
-                    <button type="submit" class="btn btn-primary">Pesquisar</button>
+            <!-- Ações principais -->
+            <div class="d-flex gap-2 mb-3">
+                <button id="openCreateBookBibBtn" class="btn btn-success">Cadastrar livro</button>
+                <button id="logoutBibBtn" class="btn btn-outline-danger ms-auto">Logout</button>
+            </div>
+
+            <!-- Pesquisa de livros -->
+            <form id="searchBookBibForm" class="mb-3">
+                <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                        <input type="text" id="searchBookBibInput" class="form-control"
+                            placeholder="Pesquisar por título, autor, ISBN ou código interno...">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <select id="searchBookBibField" class="form-select">
+                            <option value="">Todos os campos</option>
+                            <option value="titulo">Título</option>
+                            <option value="autor">Autor</option>
+                            <option value="isbn">ISBN</option>
+                            <option value="codigoInterno">Código Interno</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">Pesquisar</button>
+                    </div>
                 </div>
             </form>
 
-            <!-- Resultado da pesquisa -->
-            <div id="bookBibResult" style="display:none;">
-                <h5 class="mb-3">Informações do Livro</h5>
-                <ul class="list-group mb-3">
-                    <li class="list-group-item"><strong>Título:</strong> <span id="bibTitulo"></span></li>
-                    <li class="list-group-item"><strong>Autor:</strong> <span id="bibAutor"></span></li>
-                    <li class="list-group-item"><strong>Status:</strong> <span id="bibStatus"></span></li>
+            <!-- Lista de livros -->
+            <div id="booksBibListContainer" class="mt-3">
+                <h5 class="mb-3">Resultados da pesquisa</h5>
+                <ul id="booksBibList" class="list-group">
+                    <!-- Aqui serão renderizados os livros com botões de "Consultar" -->
                 </ul>
             </div>
 
-            <!-- Verificação de aluguéis -->
-            <div class="mt-4">
-                <form id="checkAlunoAluguelForm">
-                    <div class="input-group">
-                        <input type="text" id="alunoMatriculaCheck" class="form-control"
-                            placeholder="Matrícula do aluno...">
-                        <button type="submit" class="btn btn-warning">Verificar Aluguéis</button>
+            <!-- Modal: Consultar livro -->
+            <div class="modal fade" id="consultBookBibModal" tabindex="-1" aria-labelledby="consultBookBibModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="consultBookBibModalLabel">Consultar livro</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Código interno</dt>
+                                <dd class="col-sm-8" id="bibCodigoInterno"></dd>
+                                <dt class="col-sm-4">Título</dt>
+                                <dd class="col-sm-8" id="bibTitulo"></dd>
+                                <dt class="col-sm-4">Autor</dt>
+                                <dd class="col-sm-8" id="bibAutor"></dd>
+                                <dt class="col-sm-4">Gênero</dt>
+                                <dd class="col-sm-8" id="bibGenero"></dd>
+                                <dt class="col-sm-4">ISBN-10</dt>
+                                <dd class="col-sm-8" id="bibIsbn10"></dd>
+                                <dt class="col-sm-4">ISBN-13</dt>
+                                <dd class="col-sm-8" id="bibIsbn13"></dd>
+                                <dt class="col-sm-4">Status</dt>
+                                <dd class="col-sm-8" id="bibStatus"></dd>
+                                <dt class="col-sm-4">Sinopse</dt>
+                                <dd class="col-sm-8" id="bibSinopse"></dd>
+                            </dl>
+                        </div>
                     </div>
-                </form>
-                <ul id="alunoAlugueisList" class="list-group mt-3"></ul>
+                </div>
+            </div>
+
+            <!-- Modal: Cadastro de livro -->
+            <div class="modal fade" id="createBookBibModal" tabindex="-1" aria-labelledby="createBookBibModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <form id="createBookBibForm" class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createBookBibModalLabel">Cadastrar livro</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="createBibCodigoInterno" class="form-label">Código interno</label>
+                                    <input type="text" class="form-control" id="createBibCodigoInterno" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createBibTitulo" class="form-label">Título</label>
+                                    <input type="text" class="form-control" id="createBibTitulo" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createBibAutor" class="form-label">Autor</label>
+                                    <input type="text" class="form-control" id="createBibAutor" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createBibGenero" class="form-label">Gênero</label>
+                                    <input type="text" class="form-control" id="createBibGenero" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createBibIsbn10" class="form-label">ISBN-10</label>
+                                    <input type="text" class="form-control" id="createBibIsbn10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createBibIsbn13" class="form-label">ISBN-13</label>
+                                    <input type="text" class="form-control" id="createBibIsbn13">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="createBibStatus" class="form-label">Status</label>
+                                    <select id="createBibStatus" class="form-select" required>
+                                        <option value="DISPONIVEL">Disponível</option>
+                                        <option value="INDISPONIVEL">Indisponível</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label for="createBibSinopse" class="form-label">Sinopse</label>
+                                    <textarea id="createBibSinopse" class="form-control" rows="4"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Pesquisa de aluno por matrícula -->
+            <form id="searchAlunoForm" class="mt-4">
+                <div class="input-group">
+                    <input type="text" id="searchAlunoMatricula" class="form-control"
+                        placeholder="Pesquisar aluno pela matrícula...">
+                    <button type="submit" class="btn btn-warning">Pesquisar Aluno</button>
+                </div>
+            </form>
+
+            <!-- Resultados do aluno -->
+            <div id="alunoResultContainer" class="mt-3" style="display:none;">
+                <h5 class="mb-3">Dados do aluno</h5>
+                <p><strong>Nome:</strong> <span id="alunoNome"></span></p>
+                <p><strong>Matrícula:</strong> <span id="alunoMatricula"></span></p>
+
+                <h6>Reservas ativas</h6>
+                <ul id="alunoReservasList" class="list-group mb-3"></ul>
+
+                <h6>Aluguéis ativos</h6>
+                <ul id="alunoAlugueisList" class="list-group"></ul>
+            </div>
+
+            <!-- Modal: Detalhes do aluguel -->
+            <div class="modal fade" id="aluguelBibModal" tabindex="-1" aria-labelledby="aluguelBibModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="aluguelBibModalLabel">Detalhes do Aluguel</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Título:</strong> <span id="bibAluguelTitulo"></span></p>
+                            <p><strong>Status:</strong> <span id="bibAluguelStatus"></span></p>
+                            <p><strong>Data de início:</strong> <span id="bibAluguelDataInicio"></span></p>
+                            <p><strong>Data de devolução:</strong> <span id="bibAluguelDataFim"></span></p>
+                            <p><strong>Aluno:</strong> <span id="bibAluguelAluno"></span></p>
+                            <p><strong>Matrícula:</strong> <span id="bibAluguelMatricula"></span></p>
+                            <p><strong>Observações:</strong> <span id="bibAluguelObservacoes"></span></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- JS externo -->
-    <script src="../static/script.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <!-- JS externo -->
+        <script src="../static/script.js"></script>
 </body>
 
 </html>
