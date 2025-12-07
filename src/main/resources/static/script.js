@@ -137,6 +137,12 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
+
+
+// =======================================
+// LÓGICA DA RECUPERACAO DE SENHA(PARTE 1)
+// =======================================
+
 // Recuperação de senha - Etapa 1
 const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 const forgotError = document.getElementById('forgotError');
@@ -168,6 +174,13 @@ forgotPasswordForm.addEventListener('submit', async (e) => {
         forgotError.textContent = "Dados inválidos ou usuário não encontrado.";
     }
 });
+
+
+
+// =======================================
+// LÓGICA DA RECUPERACAO DE SENHA(PARTE 2)
+// =======================================
+
 
 // Recuperação de senha - Etapa 2
 const resetPasswordForm = document.getElementById('resetPasswordForm');
@@ -203,4 +216,425 @@ resetPasswordForm.addEventListener('submit', async (e) => {
     }
 });
 
+////////////////////////////////////Código da Lógica de Administrador////////////////////////////////////
 
+// Referências principais
+const searchBookForm = document.getElementById('searchBookForm');
+const searchQuery = document.getElementById('searchQuery');
+const searchField = document.getElementById('searchField');
+const booksList = document.getElementById('booksList');
+
+// Modais
+const consultBookModal = new bootstrap.Modal(document.getElementById('consultBookModal'));
+const editBookModal = new bootstrap.Modal(document.getElementById('editBookModal'));
+const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+const createBookModal = new bootstrap.Modal(document.getElementById('createBookModal'));
+const usersModal = new bootstrap.Modal(document.getElementById('usersModal'));
+const profileModal = new bootstrap.Modal(document.getElementById('profileModal'));
+
+// Botões principais
+const openCreateBookModalBtn = document.getElementById('openCreateBookModalBtn');
+const openUsersModalBtn = document.getElementById('openUsersModalBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+
+// Campos de consulta de livro (modal)
+const viewCodigoInterno = document.getElementById('viewCodigoInterno');
+const viewTitulo = document.getElementById('viewTitulo');
+const viewAutor = document.getElementById('viewAutor');
+const viewGenero = document.getElementById('viewGenero');
+const viewIsbn10 = document.getElementById('viewIsbn10');
+const viewIsbn13 = document.getElementById('viewIsbn13');
+const viewStatus = document.getElementById('viewStatus');
+const viewSinopse = document.getElementById('viewSinopse');
+
+// Formulários
+const editBookForm = document.getElementById('editBookForm');
+const createBookForm = document.getElementById('createBookForm');
+
+// Botões de remoção
+const openDeleteConfirmBtn = document.getElementById('openDeleteConfirmBtn');
+const confirmDeleteBookBtn = document.getElementById('confirmDeleteBookBtn');
+
+// Lista de usuários e perfil
+const usersList = document.getElementById('usersList');
+const profileUserName = document.getElementById('profileUserName');
+const profileUserMatricula = document.getElementById('profileUserMatricula');
+const profileUserTipo = document.getElementById('profileUserTipo');
+const profileLogsList = document.getElementById('profileLogsList');
+
+// Estado temporário
+let currentBookId = null;
+
+// 🔎 Pesquisa de livros
+searchBookForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const query = searchQuery.value.trim();
+  const field = searchField.value;
+
+  try {
+    const response = await axios.get(`http://localhost:8080/api/v1/livros`, {
+      params: { query, field }
+    });
+
+    booksList.innerHTML = "";
+    response.data.forEach(livro => {
+      const li = document.createElement('li');
+      li.className = "list-group-item d-flex justify-content-between align-items-start";
+
+      li.innerHTML = `
+        <div class="me-2 flex-grow-1">
+          <div class="fw-bold">${livro.titulo}</div>
+          <small>Código: ${livro.codigoInterno} • Autor: ${livro.autor} • Gênero: ${livro.genero} • Status: ${livro.status}</small>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <button class="btn btn-outline-primary btn-sm" data-action="consultar" data-id="${livro.id}">Consultar</button>
+          <button class="btn btn-outline-warning btn-sm" data-action="editar" data-id="${livro.id}">Editar</button>
+        </div>
+      `;
+      booksList.appendChild(li);
+    });
+  } catch (err) {
+    alert("Erro ao buscar livros.");
+  }
+});
+
+// 📖 Consultar livro
+booksList.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+
+  try {
+    const response = await axios.get(`http://localhost:8080/api/v1/livros/${id}`);
+    const livro = response.data;
+    currentBookId = livro.id;
+
+    if (action === "consultar") {
+      viewCodigoInterno.textContent = livro.codigoInterno;
+      viewTitulo.textContent = livro.titulo;
+      viewAutor.textContent = livro.autor;
+      viewGenero.textContent = livro.genero;
+      viewIsbn10.textContent = livro.isbn10;
+      viewIsbn13.textContent = livro.isbn13;
+      viewStatus.textContent = livro.status;
+      viewSinopse.textContent = livro.sinopse;
+      consultBookModal.show();
+    }
+
+    if (action === "editar") {
+      document.getElementById('editId').value = livro.id;
+      document.getElementById('editCodigoInterno').value = livro.codigoInterno;
+      document.getElementById('editTitulo').value = livro.titulo;
+      document.getElementById('editAutor').value = livro.autor;
+      document.getElementById('editGenero').value = livro.genero;
+      document.getElementById('editIsbn10').value = livro.isbn10;
+      document.getElementById('editIsbn13').value = livro.isbn13;
+      document.getElementById('editStatus').value = livro.status;
+      document.getElementById('editSinopse').value = livro.sinopse;
+      editBookModal.show();
+    }
+  } catch (err) {
+    alert("Erro ao consultar livro.");
+  }
+});
+
+// ✏️ Editar livro
+editBookForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('editId').value;
+
+  const livroAtualizado = {
+    codigoInterno: document.getElementById('editCodigoInterno').value,
+    titulo: document.getElementById('editTitulo').value,
+    autor: document.getElementById('editAutor').value,
+    genero: document.getElementById('editGenero').value,
+    isbn10: document.getElementById('editIsbn10').value,
+    isbn13: document.getElementById('editIsbn13').value,
+    status: document.getElementById('editStatus').value,
+    sinopse: document.getElementById('editSinopse').value
+  };
+
+  try {
+    await axios.put(`http://localhost:8080/api/v1/livros/${id}`, livroAtualizado);
+    alert("Livro atualizado com sucesso!");
+    editBookModal.hide();
+    searchBookForm.dispatchEvent(new Event('submit')); // atualiza lista
+  } catch (err) {
+    alert("Erro ao atualizar livro.");
+  }
+});
+
+// 🗑️ Remover livro
+openDeleteConfirmBtn.addEventListener('click', () => {
+  deleteConfirmModal.show();
+});
+
+confirmDeleteBookBtn.addEventListener('click', async () => {
+  try {
+    await axios.delete(`http://localhost:8080/api/v1/livros/${currentBookId}`);
+    alert("Livro removido com sucesso!");
+    deleteConfirmModal.hide();
+    editBookModal.hide();
+    searchBookForm.dispatchEvent(new Event('submit'));
+  } catch (err) {
+    alert("Erro ao remover livro.");
+  }
+});
+
+// ➕ Cadastrar livro
+openCreateBookModalBtn.addEventListener('click', () => {
+  createBookModal.show();
+});
+
+createBookForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const novoLivro = {
+    codigoInterno: document.getElementById('createCodigoInterno').value,
+    titulo: document.getElementById('createTitulo').value,
+    autor: document.getElementById('createAutor').value,
+    genero: document.getElementById('createGenero').value,
+    isbn10: document.getElementById('createIsbn10').value,
+    isbn13: document.getElementById('createIsbn13').value,
+    status: document.getElementById('createStatus').value,
+    sinopse: document.getElementById('createSinopse').value
+  };
+
+  try {
+    await axios.post(`http://localhost:8080/api/v1/livros`, novoLivro);
+    alert("Livro cadastrado com sucesso!");
+    createBookModal.hide();
+    searchBookForm.dispatchEvent(new Event('submit'));
+  } catch (err) {
+    alert("Erro ao cadastrar livro.");
+  }
+});
+
+// 👥 Consultar cadastro de usuários
+openUsersModalBtn.addEventListener('click', async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/v1/usuarios?tipo=ADMINISTRADOR,BIBLIOTECARIO`);
+    usersList.innerHTML = "";
+    response.data.forEach(user => {
+      const li = document.createElement('li');
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.innerHTML = `
+        <span>${user.nomeCompleto} • Matrícula: ${user.matricula} • Tipo: ${user.tipoUsuario}</span>
+        <button class="btn btn-outline-primary btn-sm" data-id="${user.id}">Ver perfil</button>`;
+
+      usersList.appendChild(li);
+    });
+
+    // Exibir modal de usuários
+    usersModal.show();
+  } catch (err) {
+    alert("Erro ao carregar usuários.");
+  }
+});
+
+// 📋 Ver perfil de usuário (com logs)
+usersList.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+
+  const userId = btn.dataset.id;
+
+  try {
+    const response = await axios.get(`http://localhost:8080/api/v1/usuarios/${userId}`);
+    const usuario = response.data;
+
+    // Preencher dados do perfil
+    profileUserName.textContent = usuario.nomeCompleto;
+    profileUserMatricula.textContent = usuario.matricula;
+    profileUserTipo.textContent = usuario.tipoUsuario;
+
+    // Buscar logs do usuário
+    const logsResponse = await axios.get(`http://localhost:8080/api/v1/logs?usuarioId=${userId}`);
+    profileLogsList.innerHTML = "";
+    logsResponse.data.forEach(log => {
+      const li = document.createElement('li');
+      li.className = "list-group-item";
+      li.textContent = `${log.data} • ${log.acao}`;
+      profileLogsList.appendChild(li);
+    });
+
+    // Exibir modal de perfil
+    profileModal.show();
+  } catch (err) {
+    alert("Erro ao carregar perfil do usuário.");
+  }
+});
+
+// 🚪 Logout
+logoutBtn.addEventListener('click', () => {
+  // Esconde container do admin
+  document.getElementById('adminContainer').style.display = 'none';
+  // Volta para tela de login
+  loginFormContainer.style.display = 'block';
+});
+
+
+
+// ==========================
+// LÓGICA DO ALUNO
+// ==========================
+
+// Referências principais
+const searchBookAlunoForm = document.getElementById('searchBookAlunoForm');
+const searchBookAlunoInput = document.getElementById('searchBookAlunoInput');
+const searchBookAlunoField = document.getElementById('searchBookAlunoField');
+const booksAlunoList = document.getElementById('booksAlunoList');
+
+const confirmReservaModal = new bootstrap.Modal(document.getElementById('confirmReservaModal'));
+const viewAluguelModal = new bootstrap.Modal(document.getElementById('viewAluguelModal'));
+const reservasModal = new bootstrap.Modal(document.getElementById('reservasModal'));
+const alugueisModal = new bootstrap.Modal(document.getElementById('alugueisModal'));
+
+const confirmReservaBtn = document.getElementById('confirmReservaBtn');
+const viewReservasBtn = document.getElementById('viewReservasBtn');
+const viewAlugueisBtn = document.getElementById('viewAlugueisBtn');
+const logoutAlunoBtn = document.getElementById('logoutAlunoBtn');
+
+// Campos do modal de aluguel
+const aluguelTitulo = document.getElementById('aluguelTitulo');
+const aluguelStatus = document.getElementById('aluguelStatus');
+const aluguelDataInicio = document.getElementById('aluguelDataInicio');
+const aluguelDataFim = document.getElementById('aluguelDataFim');
+
+// Estado temporário
+let currentBookIdAluno = null;
+
+// 🔎 Pesquisa de livros (Aluno)
+searchBookAlunoForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const query = searchBookAlunoInput.value.trim();
+  const field = searchBookAlunoField.value;
+
+  try {
+    const response = await axios.get(`http://localhost:8080/api/v1/livros`, {
+      params: { query, field, status: "DISPONIVEL" } // apenas livros ativos
+    });
+
+    booksAlunoList.innerHTML = "";
+    response.data.forEach(livro => {
+      const li = document.createElement('li');
+      li.className = "list-group-item d-flex justify-content-between align-items-start";
+
+      li.innerHTML = `
+        <div class="me-2 flex-grow-1">
+          <div class="fw-bold">${livro.titulo}</div>
+          <small>Autor: ${livro.autor} • ISBN: ${livro.isbn10 || livro.isbn13} • Código: ${livro.codigoInterno} • Status: ${livro.status}</small>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <button class="btn btn-outline-success btn-sm" data-action="reservar" data-id="${livro.id}">Reservar</button>
+          <button class="btn btn-outline-info btn-sm" data-action="verAluguel" data-id="${livro.id}">Ver Aluguel</button>
+          <button class="btn btn-outline-warning btn-sm" data-action="renovar" data-id="${livro.id}">Renovar</button>
+        </div>
+      `;
+      booksAlunoList.appendChild(li);
+    });
+  } catch (err) {
+    alert("Erro ao buscar livros.");
+  }
+});
+
+// 📚 Ações nos livros
+booksAlunoList.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+  currentBookIdAluno = id;
+
+  if (action === "reservar") {
+    confirmReservaModal.show();
+  }
+
+  if (action === "verAluguel") {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/v1/alugueis/${id}`);
+      const aluguel = response.data;
+
+      aluguelTitulo.textContent = aluguel.livro.titulo;
+      aluguelStatus.textContent = aluguel.status;
+      aluguelDataInicio.textContent = aluguel.dataInicio;
+      aluguelDataFim.textContent = aluguel.dataFim;
+
+      viewAluguelModal.show();
+    } catch (err) {
+      alert("Erro ao carregar aluguel.");
+    }
+  }
+
+  if (action === "renovar") {
+    try {
+      await axios.put(`http://localhost:8080/api/v1/alugueis/${id}/renovar`);
+      alert("Aluguel renovado com sucesso!");
+      searchBookAlunoForm.dispatchEvent(new Event('submit'));
+    } catch (err) {
+      alert("Erro ao renovar aluguel.");
+    }
+  }
+});
+
+// ✅ Confirmar reserva
+confirmReservaBtn.addEventListener('click', async () => {
+  try {
+    await axios.post(`http://localhost:8080/api/v1/reservas`, { livroId: currentBookIdAluno });
+    alert("Reserva confirmada! O status do livro foi alterado para Reservado e o aluguel criado com prazo de 30 dias.");
+    confirmReservaModal.hide();
+    searchBookAlunoForm.dispatchEvent(new Event('submit'));
+  } catch (err) {
+    alert("Erro ao reservar livro.");
+  }
+});
+
+// 📖 Histórico de reservas
+viewReservasBtn.addEventListener('click', async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/v1/reservas/minhas`);
+    const reservas = response.data;
+
+    const reservasList = document.getElementById('reservasList');
+    reservasList.innerHTML = "";
+    reservas.forEach(reserva => {
+      const li = document.createElement('li');
+      li.className = "list-group-item";
+      li.textContent = `${reserva.livro.titulo} • Status: ${reserva.status} • Data: ${reserva.dataReserva}`;
+      reservasList.appendChild(li);
+    });
+
+    reservasModal.show();
+  } catch (err) {
+    alert("Erro ao carregar reservas.");
+  }
+});
+
+// 📖 Aluguéis ativos
+viewAlugueisBtn.addEventListener('click', async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/v1/alugueis/meus`);
+    const alugueis = response.data;
+
+    const alugueisList = document.getElementById('alugueisList');
+    alugueisList.innerHTML = "";
+    alugueis.forEach(aluguel => {
+      const li = document.createElement('li');
+      li.className = "list-group-item";
+      li.textContent = `${aluguel.livro.titulo} • Expira em: ${aluguel.dataFim}`;
+      alugueisList.appendChild(li);
+    });
+
+    alugueisModal.show();
+  } catch (err) {
+    alert("Erro ao carregar aluguéis.");
+  }
+});
+
+// 🚪 Logout (Aluno)
+logoutAlunoBtn.addEventListener('click', () => {
+  document.getElementById('alunoContainer').style.display = 'none';
+  loginFormContainer.style.display = 'block';
+});
