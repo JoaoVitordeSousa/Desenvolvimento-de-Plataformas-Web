@@ -1,12 +1,16 @@
 package br.com.bibliotecaunifor.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.bibliotecaunifor.dto.request.LoginRequestDTO;
+import br.com.bibliotecaunifor.dto.request.RedefinirSenhaRequestDTO;
 import br.com.bibliotecaunifor.dto.request.UsuarioRequestDTO;
 import br.com.bibliotecaunifor.dto.response.LoginResponseDTO;
 import br.com.bibliotecaunifor.dto.response.UsuarioResponseDTO;
@@ -52,5 +56,42 @@ public class UsuarioController {
             return ResponseEntity.status(401).body(new LoginResponseDTO(e.getMessage(), null));
         }
     }
-}
 
+    @Operation(summary = "Buscar usuário por matrícula", description = "Retorna os dados de um usuário específico pela matrícula")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    @GetMapping("/{matricula}")
+    public ResponseEntity<UsuarioResponseDTO> buscarPorMatricula(@PathVariable int matricula) {
+        try {
+            UsuarioResponseDTO response = usuarioService.buscarPorMatricula(matricula);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Redefinir senha", description = "Permite redefinir a senha após validar nome completo, matrícula e email")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Senha redefinida com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados fornecidos não correspondem ao mesmo usuário"),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    @PatchMapping("/redefinir-senha")
+    public ResponseEntity<UsuarioResponseDTO> redefinirSenha(@RequestBody RedefinirSenhaRequestDTO dto) {
+        try {
+            UsuarioResponseDTO response = usuarioService.redefinirSenha(
+                    dto.getNomeCompleto(),
+                    dto.getMatricula(),
+                    dto.getEmail(),
+                    dto.getNovaSenha());
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("não encontrado")) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.badRequest().build();
+        }
+    }
+}

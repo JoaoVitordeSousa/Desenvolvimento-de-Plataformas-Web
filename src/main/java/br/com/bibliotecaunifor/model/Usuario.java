@@ -1,5 +1,6 @@
 package br.com.bibliotecaunifor.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
@@ -18,9 +19,16 @@ public abstract class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 200)
     private String nomeCompleto;
+
+    @Column(nullable = false, length = 7, unique = true)
     private int matricula;
+
+    @Column(nullable = false, length = 200, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String senha;
 
     // Construtor padrão

@@ -134,4 +134,35 @@ public class UsuarioService {
                 usuario.getEmail(),
                 tipo);
     }
+
+    @Transactional
+    public UsuarioResponseDTO redefinirSenha(String nomeCompleto, int matricula, String email, String novaSenha) {
+        Usuario usuario = usuarioRepository.findByMatricula(matricula)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!usuario.getNomeCompleto().equalsIgnoreCase(nomeCompleto) ||
+                !usuario.getEmail().equalsIgnoreCase(email)) {
+            throw new RuntimeException("Dados fornecidos não correspondem ao mesmo usuário");
+        }
+
+        usuario.setSenha(novaSenha); // sem criptografia por enquanto
+        Usuario atualizado = usuarioRepository.save(usuario);
+
+        String tipo;
+        if (atualizado instanceof Aluno)
+            tipo = "ALUNO";
+        else if (atualizado instanceof Administrador)
+            tipo = "ADMINISTRADOR";
+        else if (atualizado instanceof Bibliotecario)
+            tipo = "BIBLIOTECARIO";
+        else
+            tipo = "DESCONHECIDO";
+
+        return new UsuarioResponseDTO(
+                atualizado.getId(),
+                atualizado.getNomeCompleto(),
+                atualizado.getMatricula(),
+                atualizado.getEmail(),
+                tipo);
+    }
 }

@@ -17,7 +17,9 @@ public class CorsConfig {
                 String usuariosBasePath = "/api/v1/usuarios";
                 String[] usuariosEndpoints = {
                         "/cadastro",
-                        "/login"
+                        "/login",
+                        "/{matricula}",
+                        "/redefinir-senha"
                 };
 
                 for (String endpoint : usuariosEndpoints) {
