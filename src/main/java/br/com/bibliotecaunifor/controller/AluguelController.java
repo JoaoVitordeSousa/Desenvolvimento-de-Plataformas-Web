@@ -77,4 +77,12 @@ public class AluguelController {
         AluguelResponseDTO response = aluguelService.atualizarStatus(id, novoStatus);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "Listar aluguéis por matrícula", description = "Retorna todos os aluguéis de um aluno pela matrícula.")
+    @GetMapping
+    public ResponseEntity<List<AluguelResponseDTO>> listarPorMatricula(
+            @Parameter(description = "Matrícula do aluno", example = "202300123") @RequestParam int matricula) {
+        List<AluguelResponseDTO> response = aluguelService.listarAlugueisPorMatricula(matricula);
+        return ResponseEntity.ok(response);
+    }
 }

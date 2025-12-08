@@ -27,8 +27,8 @@ public class AluguelService {
     private final LivroRepository livroRepository;
 
     public AluguelService(AluguelRepository aluguelRepository,
-                          AlunoRepository alunoRepository,
-                          LivroRepository livroRepository) {
+            AlunoRepository alunoRepository,
+            LivroRepository livroRepository) {
         this.aluguelRepository = aluguelRepository;
         this.alunoRepository = alunoRepository;
         this.livroRepository = livroRepository;
@@ -99,13 +99,22 @@ public class AluguelService {
         return toResponseDTO(atualizado);
     }
 
+    public List<AluguelResponseDTO> listarAlugueisPorMatricula(int matricula) {
+        Aluno aluno = alunoRepository.findByMatricula(matricula)
+                .orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
+
+        return aluguelRepository.findByAlunoId(aluno.getId())
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
     private AluguelResponseDTO toResponseDTO(Aluguel aluguel) {
         return new AluguelResponseDTO(
                 aluguel.getId(),
                 new LivroResumoDTO(aluguel.getLivro().getId(), aluguel.getLivro().getTitulo()),
                 aluguel.getStatus(),
                 aluguel.getDataInicio(),
-                aluguel.getDataFim()
-        );
+                aluguel.getDataFim());
     }
 }
