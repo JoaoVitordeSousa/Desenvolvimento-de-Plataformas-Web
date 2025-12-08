@@ -591,7 +591,13 @@ booksAlunoList.addEventListener('click', async (e) => {
 // ✅ Confirmar reserva
 confirmReservaBtn.addEventListener('click', async () => {
     try {
-        await axios.post(`http://localhost:8080/api/v1/reservas`, { livroId: currentBookIdAluno });
+        const usuarioEmail = sessionStorage.getItem("usuarioEmail");
+
+        await axios.post(`http://localhost:8080/api/v1/reservas`,
+            { livroId: currentBookIdAluno },
+            { params: { email: usuarioEmail } }
+        );
+
         alert("Reserva confirmada! O status do livro foi alterado para Reservado e o aluguel criado com prazo de 30 dias.");
         confirmReservaModal.hide();
         searchBookAlunoForm.dispatchEvent(new Event('submit'));
@@ -603,7 +609,12 @@ confirmReservaBtn.addEventListener('click', async () => {
 // 📖 Histórico de reservas
 viewReservasBtn.addEventListener('click', async () => {
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/reservas/minhas`);
+        const usuarioEmail = sessionStorage.getItem("usuarioEmail");
+
+        const response = await axios.get(`http://localhost:8080/api/v1/reservas/minhas`, {
+            params: { email: usuarioEmail }
+        });
+
         const reservas = response.data;
 
         const reservasList = document.getElementById('reservasList');
@@ -801,14 +812,14 @@ searchAlunoForm.addEventListener('submit', async (e) => {
     if (!matricula) return;
 
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/usuarios/matricula/${matricula}`);
+        const response = await axios.get(`http://localhost:8080/api/v1/usuarios/${matricula}`);
         const aluno = response.data;
 
         alunoNome.textContent = aluno.nomeCompleto;
         alunoMatricula.textContent = aluno.matricula;
 
         // Reservas ativas
-        const reservasResponse = await axios.get(`http://localhost:8080/api/v1/reservas?usuarioId=${aluno.id}`);
+        const reservasResponse = await axios.get(`http://localhost:8080/api/v1/reservas?matricula=${aluno.matricula}`);
         alunoReservasList.innerHTML = "";
         reservasResponse.data.forEach(reserva => {
             const li = document.createElement('li');
@@ -818,7 +829,7 @@ searchAlunoForm.addEventListener('submit', async (e) => {
         });
 
         // Aluguéis ativos
-        const alugueisResponse = await axios.get(`http://localhost:8080/api/v1/alugueis?usuarioId=${aluno.id}`);
+        const alugueisResponse = await axios.get(`http://localhost:8080/api/v1/alugueis?matricula=${aluno.matricula}`);
         alunoAlugueisList.innerHTML = "";
         alugueisResponse.data.forEach(aluguel => {
             const li = document.createElement('li');

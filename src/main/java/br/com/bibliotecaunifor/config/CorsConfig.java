@@ -66,6 +66,22 @@ public class CorsConfig {
                             .exposedHeaders("Authorization")
                             .allowCredentials(true);
                 }
+
+                // Endpoints de reservas
+                String reservasBasePath = "/api/v1/reservas";
+                String[] reservasEndpoints = {
+                        "",
+                        "/minhas"
+                };
+
+                for (String endpoint : reservasEndpoints) {
+                    registry.addMapping(reservasBasePath + endpoint)
+                            .allowedOrigins("http://127.0.0.1:5500")
+                            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                            .allowedHeaders("Content-Type", "Authorization")
+                            .exposedHeaders("Authorization")
+                            .allowCredentials(true);
+                }
             }
         };
     }
