@@ -113,6 +113,11 @@ loginForm.addEventListener('submit', async (e) => {
         const usuario = response.data.usuario;
         const tipo = usuario?.tipoUsuario;
 
+        // 👉 Armazena dados importantes do usuário logado
+        sessionStorage.setItem("usuarioEmail", usuario.email);
+        sessionStorage.setItem("usuarioId", usuario.id);
+        sessionStorage.setItem("usuarioTipo", usuario.tipoUsuario);
+
         // Esconde todos os containers
         loginFormContainer.style.display = 'none';
         registerFormContainer.style.display = 'none';
@@ -619,7 +624,14 @@ viewReservasBtn.addEventListener('click', async () => {
 // 📖 Aluguéis ativos
 viewAlugueisBtn.addEventListener('click', async () => {
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/alugueis/meus`);
+        // supondo que você já tenha o email do usuário logado armazenado em alguma variável
+        const usuarioEmail = sessionStorage.getItem("usuarioEmail");
+        // ou poderia vir de um objeto global de usuário autenticado
+
+        const response = await axios.get(`http://localhost:8080/api/v1/alugueis/meus`, {
+            params: { email: usuarioEmail }
+        });
+
         const alugueis = response.data;
 
         const alugueisList = document.getElementById('alugueisList');

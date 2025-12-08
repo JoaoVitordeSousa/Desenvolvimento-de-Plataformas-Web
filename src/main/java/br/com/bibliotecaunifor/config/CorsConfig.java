@@ -47,6 +47,25 @@ public class CorsConfig {
                             .exposedHeaders("Authorization")
                             .allowCredentials(true);
                 }
+
+                // Endpoints de aluguéis
+                String alugueisBasePath = "/api/v1/alugueis";
+                String[] alugueisEndpoints = {
+                        "",
+                        "/{id}",
+                        "/meus",
+                        "/{id}/devolucao",
+                        "/{id}/status"
+                };
+
+                for (String endpoint : alugueisEndpoints) {
+                    registry.addMapping(alugueisBasePath + endpoint)
+                            .allowedOrigins("http://127.0.0.1:5500")
+                            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                            .allowedHeaders("Content-Type", "Authorization")
+                            .exposedHeaders("Authorization")
+                            .allowCredentials(true);
+                }
             }
         };
     }
