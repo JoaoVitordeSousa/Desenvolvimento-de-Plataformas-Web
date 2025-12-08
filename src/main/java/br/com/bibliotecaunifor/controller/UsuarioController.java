@@ -34,8 +34,8 @@ public class UsuarioController {
     @PostMapping("/cadastro")
     @Operation(summary = "Cadastrar usuário", description = "Cria um novo usuário no sistema")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Usuário cadastrado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Erro de validação nos dados enviados")
+            @ApiResponse(responseCode = "201", description = "Usuário cadastrado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Erro de validação nos dados enviados")
     })
     public ResponseEntity<UsuarioResponseDTO> cadastrar(@RequestBody UsuarioRequestDTO dto) {
         UsuarioResponseDTO response = usuarioService.cadastrar(dto);
@@ -43,24 +43,24 @@ public class UsuarioController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Login de usuário", description = "Realiza login por matrícula e senha")
+    @Operation(summary = "Login de usuário", description = "Realiza login por matrícula e senha. Retorna um token JWT e os dados do usuário.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
-        @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
+            @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     })
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO dto) {
         try {
-            UsuarioResponseDTO usuario = usuarioService.login(dto.getMatricula(), dto.getSenha());
-            return ResponseEntity.ok(new LoginResponseDTO("Login realizado com sucesso", usuario));
+            LoginResponseDTO response = usuarioService.login(dto.getMatricula(), dto.getSenha());
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(401).body(new LoginResponseDTO(e.getMessage(), null));
+            return ResponseEntity.status(401).body(new LoginResponseDTO(e.getMessage(), null, null));
         }
     }
 
     @Operation(summary = "Buscar usuário por matrícula", description = "Retorna os dados de um usuário específico pela matrícula")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     @GetMapping("/{matricula}")
     public ResponseEntity<UsuarioResponseDTO> buscarPorMatricula(@PathVariable int matricula) {
@@ -74,9 +74,9 @@ public class UsuarioController {
 
     @Operation(summary = "Redefinir senha", description = "Permite redefinir a senha após validar nome completo, matrícula e email")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Senha redefinida com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados fornecidos não correspondem ao mesmo usuário"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "200", description = "Senha redefinida com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados fornecidos não correspondem ao mesmo usuário"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     @PatchMapping("/redefinir-senha")
     public ResponseEntity<UsuarioResponseDTO> redefinirSenha(@RequestBody RedefinirSenhaRequestDTO dto) {
