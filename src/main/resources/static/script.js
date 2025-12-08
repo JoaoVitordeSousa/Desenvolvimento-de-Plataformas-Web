@@ -112,8 +112,10 @@ loginForm.addEventListener('submit', async (e) => {
 
         const usuario = response.data.usuario;
         const tipo = usuario?.tipoUsuario;
+        const token = response.data.token;
 
         // 👉 Armazena dados importantes do usuário logado
+        sessionStorage.setItem("authToken", token);
         sessionStorage.setItem("usuarioEmail", usuario.email);
         sessionStorage.setItem("usuarioId", usuario.id);
         sessionStorage.setItem("usuarioTipo", usuario.tipoUsuario);
@@ -277,8 +279,10 @@ searchBookForm.addEventListener('submit', async (e) => {
     const field = searchField.value;
 
     try {
+        const token = sessionStorage.getItem("authToken");
         const response = await axios.get(`http://localhost:8080/api/v1/livros`, {
-            params: { query, field }
+            params: { query, field },
+            headers: { Authorization: `Bearer ${token}` }
         });
 
         booksList.innerHTML = "";
@@ -312,7 +316,10 @@ booksList.addEventListener('click', async (e) => {
     const codigoInterno = btn.dataset.id; // agora usamos codigoInterno
 
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/livros/${codigoInterno}`);
+        const token = sessionStorage.getItem("authToken");
+        const response = await axios.get(`http://localhost:8080/api/v1/livros/${codigoInterno}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         const livro = response.data;
         currentBookId = livro.codigoInterno; // guardamos o codigoInterno
 
@@ -364,7 +371,10 @@ editBookForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        await axios.put(`http://localhost:8080/api/v1/livros/${codigoInterno}`, livroAtualizado);
+        const token = sessionStorage.getItem("authToken");
+        await axios.put(`http://localhost:8080/api/v1/livros/${codigoInterno}`, livroAtualizado, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         alert("Livro atualizado com sucesso!");
         const modal = bootstrap.Modal.getInstance(document.getElementById('editBookModal'));
         modal.hide();
@@ -382,7 +392,10 @@ confirmDeleteBookBtn.addEventListener('click', async () => {
     }
 
     try {
-        await axios.delete(`http://localhost:8080/api/v1/livros/${currentBookCodigoInterno}`);
+        const token = sessionStorage.getItem("authToken");
+        await axios.delete(`http://localhost:8080/api/v1/livros/${currentBookCodigoInterno}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         alert("Livro removido com sucesso!");
         deleteConfirmModal.hide();
         editBookModal.hide();
@@ -411,7 +424,10 @@ createBookForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        await axios.post(`http://localhost:8080/api/v1/livros`, novoLivro);
+        const token = sessionStorage.getItem("authToken");
+        await axios.post(`http://localhost:8080/api/v1/livros`, novoLivro, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         alert("Livro cadastrado com sucesso!");
         createBookModal.hide();
         searchBookForm.dispatchEvent(new Event('submit'));
@@ -423,7 +439,10 @@ createBookForm.addEventListener('submit', async (e) => {
 // 👥 Consultar cadastro de usuários
 openUsersModalBtn.addEventListener('click', async () => {
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/usuarios?tipo=ADMINISTRADOR,BIBLIOTECARIO`);
+        const token = sessionStorage.getItem("authToken");
+        const response = await axios.get(`http://localhost:8080/api/v1/usuarios?tipo=ADMINISTRADOR,BIBLIOTECARIO`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         usersList.innerHTML = "";
         response.data.forEach(user => {
             const li = document.createElement('li');
@@ -450,7 +469,10 @@ usersList.addEventListener('click', async (e) => {
     const userId = btn.dataset.id;
 
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/usuarios/${userId}`);
+        const token = sessionStorage.getItem("authToken");
+        const response = await axios.get(`http://localhost:8080/api/v1/usuarios/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         const usuario = response.data;
 
         // Preencher dados do perfil
@@ -459,7 +481,9 @@ usersList.addEventListener('click', async (e) => {
         profileUserTipo.textContent = usuario.tipoUsuario;
 
         // Buscar logs do usuário
-        const logsResponse = await axios.get(`http://localhost:8080/api/v1/logs?usuarioId=${userId}`);
+        const logsResponse = await axios.get(`http://localhost:8080/api/v1/logs?usuarioId=${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         profileLogsList.innerHTML = "";
         logsResponse.data.forEach(log => {
             const li = document.createElement('li');
@@ -477,9 +501,8 @@ usersList.addEventListener('click', async (e) => {
 
 // 🚪 Logout
 logoutBtn.addEventListener('click', () => {
-    // Esconde container do admin
+    sessionStorage.removeItem("authToken");
     document.getElementById('adminContainer').style.display = 'none';
-    // Volta para tela de login
     loginFormContainer.style.display = 'block';
 });
 
@@ -521,8 +544,10 @@ searchBookAlunoForm.addEventListener('submit', async (e) => {
     const field = searchBookAlunoField.value;
 
     try {
+        const token = sessionStorage.getItem("authToken");
         const response = await axios.get(`http://localhost:8080/api/v1/livros`, {
-            params: { query, field, status: "DISPONIVEL" } // apenas livros ativos
+            params: { query, field, status: "DISPONIVEL" },
+            headers: { Authorization: `Bearer ${token}` }
         });
 
         booksAlunoList.innerHTML = "";
@@ -563,7 +588,10 @@ booksAlunoList.addEventListener('click', async (e) => {
 
     if (action === "verAluguel") {
         try {
-            const response = await axios.get(`http://localhost:8080/api/v1/alugueis/${id}`);
+            const token = sessionStorage.getItem("authToken");
+            const response = await axios.get(`http://localhost:8080/api/v1/alugueis/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const aluguel = response.data;
 
             aluguelTitulo.textContent = aluguel.livro.titulo;
@@ -579,7 +607,10 @@ booksAlunoList.addEventListener('click', async (e) => {
 
     if (action === "renovar") {
         try {
-            await axios.put(`http://localhost:8080/api/v1/alugueis/${id}/renovar`);
+            const token = sessionStorage.getItem("authToken");
+            await axios.put(`http://localhost:8080/api/v1/alugueis/${id}/renovar`, null, {
+                headers: { Authorization: `Bearer ${token}` } // 🔹 adiciona token
+            });
             alert("Aluguel renovado com sucesso!");
             searchBookAlunoForm.dispatchEvent(new Event('submit'));
         } catch (err) {
@@ -593,9 +624,13 @@ confirmReservaBtn.addEventListener('click', async () => {
     try {
         const usuarioEmail = sessionStorage.getItem("usuarioEmail");
 
+        const token = sessionStorage.getItem("authToken");
         await axios.post(`http://localhost:8080/api/v1/reservas`,
             { livroId: currentBookIdAluno },
-            { params: { email: usuarioEmail } }
+            {
+                params: { email: usuarioEmail },
+                headers: { Authorization: `Bearer ${token}` }
+            }
         );
 
         alert("Reserva confirmada! O status do livro foi alterado para Reservado e o aluguel criado com prazo de 30 dias.");
@@ -611,8 +646,10 @@ viewReservasBtn.addEventListener('click', async () => {
     try {
         const usuarioEmail = sessionStorage.getItem("usuarioEmail");
 
+        const token = sessionStorage.getItem("authToken");
         const response = await axios.get(`http://localhost:8080/api/v1/reservas/minhas`, {
-            params: { email: usuarioEmail }
+            params: { email: usuarioEmail },
+            headers: { Authorization: `Bearer ${token}` }
         });
 
         const reservas = response.data;
@@ -639,8 +676,10 @@ viewAlugueisBtn.addEventListener('click', async () => {
         const usuarioEmail = sessionStorage.getItem("usuarioEmail");
         // ou poderia vir de um objeto global de usuário autenticado
 
+        const token = sessionStorage.getItem("authToken");
         const response = await axios.get(`http://localhost:8080/api/v1/alugueis/meus`, {
-            params: { email: usuarioEmail }
+            params: { email: usuarioEmail },
+            headers: { Authorization: `Bearer ${token}` }
         });
 
         const alugueis = response.data;
@@ -662,6 +701,7 @@ viewAlugueisBtn.addEventListener('click', async () => {
 
 // 🚪 Logout (Aluno)
 logoutAlunoBtn.addEventListener('click', () => {
+    sessionStorage.removeItem("authToken");
     document.getElementById('alunoContainer').style.display = 'none';
     loginFormContainer.style.display = 'block';
 });
@@ -711,8 +751,10 @@ searchBookBibForm.addEventListener('submit', async (e) => {
     const field = searchBookBibField.value;
 
     try {
+        const token = sessionStorage.getItem("authToken");
         const response = await axios.get(`http://localhost:8080/api/v1/livros`, {
-            params: { query, field }
+            params: { query, field },
+            headers: { Authorization: `Bearer ${token}` }
         });
 
         booksBibList.innerHTML = "";
@@ -744,7 +786,10 @@ booksBibList.addEventListener('click', async (e) => {
     if (btn.dataset.action === "consultar") {
         const codigoInterno = btn.dataset.id; // agora usamos codigoInterno
         try {
-            const response = await axios.get(`http://localhost:8080/api/v1/livros/${codigoInterno}`);
+            const token = sessionStorage.getItem("authToken");
+            const response = await axios.get(`http://localhost:8080/api/v1/livros/${codigoInterno}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const livro = response.data;
 
             bibCodigoInterno.textContent = livro.codigoInterno;
@@ -771,6 +816,7 @@ openCreateBookBibBtn.addEventListener('click', () => {
 createBookBibForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
+        const token = sessionStorage.getItem("authToken");
         await axios.post(`http://localhost:8080/api/v1/livros`, {
             codigoInterno: document.getElementById('createBibCodigoInterno').value,
             titulo: document.getElementById('createBibTitulo').value,
@@ -780,6 +826,8 @@ createBookBibForm.addEventListener('submit', async (e) => {
             isbn13: document.getElementById('createBibIsbn13').value,
             status: document.getElementById('createBibStatus').value,
             sinopse: document.getElementById('createBibSinopse').value
+        }, {
+            headers: { Authorization: `Bearer ${token}` }
         });
         alert("Livro cadastrado com sucesso!");
         createBookBibModal.hide();
@@ -791,6 +839,7 @@ createBookBibForm.addEventListener('submit', async (e) => {
 
 // 🚪 Logout
 logoutBibBtn.addEventListener('click', () => {
+    sessionStorage.removeItem("authToken");
     document.getElementById('bibliotecarioContainer').style.display = 'none';
     loginFormContainer.style.display = 'block';
 });
@@ -812,14 +861,19 @@ searchAlunoForm.addEventListener('submit', async (e) => {
     if (!matricula) return;
 
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/usuarios/${matricula}`);
+        const token = sessionStorage.getItem("authToken");
+        const response = await axios.get(`http://localhost:8080/api/v1/usuarios/${matricula}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         const aluno = response.data;
 
         alunoNome.textContent = aluno.nomeCompleto;
         alunoMatricula.textContent = aluno.matricula;
 
         // Reservas ativas
-        const reservasResponse = await axios.get(`http://localhost:8080/api/v1/reservas?matricula=${aluno.matricula}`);
+        const reservasResponse = await axios.get(`http://localhost:8080/api/v1/reservas?matricula=${aluno.matricula}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         alunoReservasList.innerHTML = "";
         reservasResponse.data.forEach(reserva => {
             const li = document.createElement('li');
@@ -829,7 +883,9 @@ searchAlunoForm.addEventListener('submit', async (e) => {
         });
 
         // Aluguéis ativos
-        const alugueisResponse = await axios.get(`http://localhost:8080/api/v1/alugueis?matricula=${aluno.matricula}`);
+        const alugueisResponse = await axios.get(`http://localhost:8080/api/v1/alugueis?matricula=${aluno.matricula}`, {
+            headers: { Authorization: `Bearer ${token}` } // 🔹 adiciona token
+        });
         alunoAlugueisList.innerHTML = "";
         alugueisResponse.data.forEach(aluguel => {
             const li = document.createElement('li');
@@ -854,7 +910,10 @@ alunoAlugueisList.addEventListener('click', async (e) => {
 
     const aluguelId = btn.dataset.id;
     try {
-        const response = await axios.get(`http://localhost:8080/api/v1/alugueis/${aluguelId}`);
+        const token = sessionStorage.getItem("authToken");
+        const response = await axios.get(`http://localhost:8080/api/v1/alugueis/${aluguelId}`, {
+            headers: { Authorization: `Bearer ${token}` } // 🔹 adiciona token
+        });
         const aluguel = response.data;
 
         // Preencher dados no modal

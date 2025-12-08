@@ -1,8 +1,11 @@
 package br.com.bibliotecaunifor.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import br.com.bibliotecaunifor.config.JwtUtil;
 import br.com.bibliotecaunifor.dto.request.UsuarioRequestDTO;
+import br.com.bibliotecaunifor.dto.response.LoginResponseDTO;
 import br.com.bibliotecaunifor.dto.response.UsuarioResponseDTO;
 import br.com.bibliotecaunifor.model.Administrador;
 import br.com.bibliotecaunifor.model.Aluno;
@@ -14,9 +17,15 @@ import jakarta.transaction.Transactional;
 @Service
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder,
+            JwtUtil jwtUtil) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     @Transactional
@@ -27,7 +36,7 @@ public class UsuarioService {
         usuario.setNomeCompleto(dto.getNomeCompleto());
         usuario.setMatricula(dto.getMatricula());
         usuario.setEmail(dto.getEmail());
-        usuario.setSenha(dto.getSenha()); // sem criptografia por enquanto
+        usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
 
         Usuario salvo = usuarioRepository.save(usuario);
 
@@ -107,32 +116,23 @@ public class UsuarioService {
     }
 
     @Transactional
-    public UsuarioResponseDTO login(int matricula, String senha) {
+    public LoginResponseDTO login(int matricula, String senha) {
         Usuario usuario = usuarioRepository.findByMatricula(matricula)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        // Validação simples (sem criptografia ainda)
-        if (!usuario.getSenha().equals(senha)) {
+        // Validação com BCrypt
+        if (!passwordEncoder.matches(senha, usuario.getSenha())) {
             throw new RuntimeException("Senha inválida");
         }
 
-        // Determina o tipo pelo instanceof
-        String tipo;
-        if (usuario instanceof Aluno)
-            tipo = "ALUNO";
-        else if (usuario instanceof Administrador)
-            tipo = "ADMINISTRADOR";
-        else if (usuario instanceof Bibliotecario)
-            tipo = "BIBLIOTECARIO";
-        else
-            tipo = "DESCONHECIDO";
+        // Gera token JWT
+        String token = jwtUtil.generateToken(usuario.getEmail());
 
-        return new UsuarioResponseDTO(
-                usuario.getId(),
-                usuario.getNomeCompleto(),
-                usuario.getMatricula(),
-                usuario.getEmail(),
-                tipo);
+        // Monta DTO do usuário
+        UsuarioResponseDTO usuarioDTO = toResponseDTO(usuario);
+
+        // Retorna LoginResponseDTO com token + dados do usuário
+        return new LoginResponseDTO("Login realizado com sucesso", token, usuarioDTO);
     }
 
     @Transactional
@@ -163,6 +163,25 @@ public class UsuarioService {
                 atualizado.getNomeCompleto(),
                 atualizado.getMatricula(),
                 atualizado.getEmail(),
+                tipo);
+    }
+
+    private UsuarioResponseDTO toResponseDTO(Usuario usuario) {
+        String tipo;
+        if (usuario instanceof Aluno)
+            tipo = "ALUNO";
+        else if (usuario instanceof Administrador)
+            tipo = "ADMINISTRADOR";
+        else if (usuario instanceof Bibliotecario)
+            tipo = "BIBLIOTECARIO";
+        else
+            tipo = "DESCONHECIDO";
+
+        return new UsuarioResponseDTO(
+                usuario.getId(),
+                usuario.getNomeCompleto(),
+                usuario.getMatricula(),
+                usuario.getEmail(),
                 tipo);
     }
 }
